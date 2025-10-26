@@ -106,7 +106,7 @@ const EnrollForm = () => {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch("https://code-nexux-1.onrender.com/api/enroll/create", {
+      const response = await fetch("https://server-rezc.onrender.com/api/enroll/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
