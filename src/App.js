@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
-// 🌐 Components
+// 🌐 Common Components
 import Navbar from "./components/Navbar";
 import RunningMessage from "./components/RunningMessage";
 import Home from "./components/Home";
@@ -13,13 +14,15 @@ import Touch from "./components/Touch";
 import Footer from "./components/Footer";
 
 // 🔐 Pages
-import Login from "./pages/Login";
+// import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import EnrollForm from "./pages/EnrollForm";
 import AdminEnrollments from "./pages/AdminEnrollments";
+import VerifyPage from "./pages/VerifyPage";
+ // ✅ updated import
 
-// 🧭 Scroll-to-top when route changes
+// 🧭 Scroll-to-top on route change
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -28,58 +31,81 @@ const ScrollToTop = () => {
   return null;
 };
 
-// 🧩 Protected Route Wrapper (Stable)
+// 🧩 Protected Route Wrapper (with JWT expiry check)
 const ProtectedRoute = ({ children, role }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("role");
 
-  // 🚫 No token or role → logout and redirect
+  // No token or role -> force logout to be safe
   if (!token || !userRole) {
     localStorage.clear();
     return <Navigate to="/login" replace />;
   }
 
-  // 🚫 Role mismatch → redirect to correct dashboard
-  if (role && userRole !== role) {
-    if (userRole === "admin") return <Navigate to="/admin-dashboard" replace />;
-    if (userRole === "user") return <Navigate to="/dashboard" replace />;
-
+  // Check JWT expiry
+  try {
+    const decoded = jwtDecode(token);
+    const now = Date.now() / 1000;
+    if (!decoded || typeof decoded.exp !== "number" || decoded.exp < now) {
+      localStorage.clear();
+      return <Navigate to="/login" replace />;
+    }
+  } catch (err) {
+    // if decode fails, clear and redirect
     localStorage.clear();
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Authorized access
+  // Role mismatch -> redirect to respective dashboard or logout
+  if (role && userRole !== role) {
+    if (userRole === "admin") return <Navigate to="/admin-dashboard" replace />;
+    if (userRole === "user") return <Navigate to="/dashboard" replace />;
+    localStorage.clear();
+    return <Navigate to="/login" replace />;
+  }
+
+  // Authorized
   return children;
 };
 
 // 🧠 Main App Component
 const App = () => {
+  const location = useLocation();
+
+  // Hide Navbar/Footer for auth/dashboard/enroll routes + verify
+  const hideLayout =
+    location.pathname.startsWith("/login") ||
+    location.pathname.startsWith("/admin-dashboard") ||
+    location.pathname.startsWith("/admin/") ||
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/enroll") ||
+    location.pathname.startsWith("/verify"); // ✅ added verify
+
   return (
     <>
       <ScrollToTop />
+
+      {/* Navbar & running message (hidden on specific pages) */}
+      {!hideLayout && <Navbar />}
+      {!hideLayout && <RunningMessage />}
+
       <Routes>
-        {/* 🌍 Public Landing Page */}
+        {/* Public Landing Page */}
         <Route
           path="/"
           element={
             <>
-              <Navbar />
-              <RunningMessage />
               <Home />
               <Features />
               <Courses />
               <FAQ />
               <Careers />
               <Touch />
-              <Footer />
             </>
           }
         />
 
-        {/* 🔑 Shared Login Page */}
-        <Route path="/login" element={<Login />} />
-
-        {/* 🧭 Admin Dashboard */}
+        {/* Admin Dashboard */}
         <Route
           path="/admin-dashboard"
           element={
@@ -89,7 +115,7 @@ const App = () => {
           }
         />
 
-        {/* 📋 Admin Enrollments */}
+        {/* Admin - View Enrollments */}
         <Route
           path="/admin/enrollments"
           element={
@@ -99,7 +125,7 @@ const App = () => {
           }
         />
 
-        {/* 👤 User Dashboard */}
+        {/* User Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -109,7 +135,7 @@ const App = () => {
           }
         />
 
-        {/* 📝 Enrollment Form */}
+        {/* Enrollment Form */}
         <Route
           path="/enroll"
           element={
@@ -119,7 +145,10 @@ const App = () => {
           }
         />
 
-        {/* 🚫 404 Fallback */}
+        {/* ✅ Certificate Verification Page */}
+        <Route path="/verify" element={<VerifyPage />} />
+
+        {/* 404 */}
         <Route
           path="*"
           element={
@@ -129,6 +158,9 @@ const App = () => {
           }
         />
       </Routes>
+
+      {/* Footer */}
+      {/* {!hideLayout && <Footer />} */}
     </>
   );
 };

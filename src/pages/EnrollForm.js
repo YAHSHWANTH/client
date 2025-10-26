@@ -1,46 +1,72 @@
+// src/pages/EnrollForm.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 const EnrollForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     dob: "",
     email: "",
+    gender: "",
     phone: "",
     college: "",
-    location: "",
-    course: "",
-    duration: "",
-    guidance: "",
+    qualification: "",
+    year: "",
+    domain: "",
+    source: "",
+    linkedin: "",
+    telegram: "",
+    instagram: "",
+    referrals: "",
     agree: false,
   });
 
   const [showTerms, setShowTerms] = useState(false);
+  const navigate = useNavigate();
 
-  const courses = [
-    "Python Programming",
-    "Java Programming",
-    "Frontend Development (React)",
-    "Backend Development (Node.js)",
-    "Full Stack Development (Java)",
-    "Full Stack Development (Python)",
-    "Mobile App Development",
-    "UI/UX Design",
-    "Data Science & Machine Learning",
-    "Cybersecurity Fundamentals",
-    "Cloud Computing (AWS/Azure)",
-    "DevOps Engineering",
-    "Database Management (MongoDB, SQL)",
-    "AI & Deep Learning",
-    "Blockchain Fundamentals",
-    "Game Development (Unity)",
-    "Embedded Systems",
-    "Digital Marketing",
-    "Web3 & Smart Contracts",
-    "Software Testing (Manual & Automation)",
+
+  const genderOptions = ["Male", "Female", "Other"];
+  const qualificationOptions = [
+    "B.Tech",
+    "B.Sc",
+    "BCA",
+    "BA",
+    "M.Sc",
+    "MBA",
+    "MCA",
+    "Other",
   ];
-
-  const durations = ["1 Month", "2 Months", "3 Months", "6 Months"];
-  const guidanceOptions = ["With Mentor Guidance", "Without Mentor Guidance"];
+  const yearOptions = [
+    "1st Year",
+    "2nd Year",
+    "3rd Year",
+    "4th Year",
+    "Final Year",
+    "Completed",
+  ];
+  const internshipDomains = [
+    "Python",
+    "C",
+    "C++",
+    "Java",
+    "Frontend Development",
+    "Full Stack Development",
+    "App Development",
+    "Data Science",
+    "Machine Learning",
+    "Artificial Intelligence",
+    "Data Analytics",
+    "Cyber Security",
+    "Cloud Computing",
+    "DevOps",
+    "Blockchain Technology",
+    "Internet of Things (IoT)",
+    "Graphics Design",
+    "UI/UX Design",
+  ];
+  const sourceOptions = ["Friend", "College", "LinkedIn", "Other"];
+  const yesNoOptions = ["Yes", "No"];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -50,16 +76,37 @@ const EnrollForm = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.agree) {
-      alert("⚠️ Please agree to the Terms & Conditions before submitting.");
-      return;
+  const validateForm = () => {
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      alert("❌ Contact number must be exactly 10 digits.");
+      return false;
     }
 
+    if (!formData.email.endsWith("@gmail.com")) {
+      alert("❌ Please enter a valid Gmail address (must end with @gmail.com).");
+      return false;
+    }
+
+    const allFilled = Object.entries(formData).every(([key, value]) => {
+      if (key === "agree") return value === true;
+      return value.trim() !== "";
+    });
+
+    if (!allFilled) {
+      alert("⚠️ Please fill in all required fields before submitting.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
     try {
-      const response = await fetch("http://localhost:5000/api/enroll", {
+      const response = await fetch("https://code-nexux-1.onrender.com/api/enroll/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -71,25 +118,32 @@ const EnrollForm = () => {
       const data = await response.json();
 
       if (data.success) {
-        alert("✅ Enrollment submitted successfully! You’ll receive a confirmation email soon.");
+        alert("✅ Internship registration submitted successfully!");
         setFormData({
           name: "",
           dob: "",
           email: "",
+          gender: "",
           phone: "",
           college: "",
-          location: "",
-          course: "",
-          duration: "",
-          guidance: "",
+          qualification: "",
+          year: "",
+          domain: "",
+          source: "",
+          linkedin: "",
+          telegram: "",
+          instagram: "",
+          referrals: "",
           agree: false,
         });
+        navigate('/');
+
       } else {
         alert("❌ " + data.message);
       }
     } catch (error) {
       console.error("Enrollment Error:", error);
-      alert("❌ Failed to submit enrollment. Please try again later.");
+      alert("❌ Failed to submit form. Please try again later.");
     }
   };
 
@@ -97,13 +151,13 @@ const EnrollForm = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-pink-100 to-purple-100 p-6">
       <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-3xl relative">
         <h2 className="text-4xl font-bold text-center mb-8 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-          Course Enrollment Form
+          Internship Registration Form
         </h2>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
           {/* Full Name */}
           <div className="flex flex-col">
-            <label className="font-semibold mb-1">Full Name</label>
+            <label className="font-semibold mb-1">Full Name *</label>
             <input
               type="text"
               name="name"
@@ -114,10 +168,9 @@ const EnrollForm = () => {
               className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
             />
           </div>
-
-          {/* DOB */}
+               {/* Date of Birth */}
           <div className="flex flex-col">
-            <label className="font-semibold mb-1">Date of Birth</label>
+            <label className="font-semibold mb-1">Date of Birth *</label>
             <input
               type="date"
               name="dob"
@@ -130,39 +183,63 @@ const EnrollForm = () => {
 
           {/* Email */}
           <div className="flex flex-col">
-            <label className="font-semibold mb-1">Email Address</label>
+            <label className="font-semibold mb-1">Email Address *</label>
             <input
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder="Enter your Gmail address"
               value={formData.email}
               onChange={handleChange}
               required
               className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
             />
+            <small className="text-gray-500 text-xs mt-1">
+              Must end with <strong>@gmail.com</strong>
+            </small>
           </div>
 
-          {/* Phone */}
+          {/* Gender */}
           <div className="flex flex-col">
-            <label className="font-semibold mb-1">Phone Number</label>
+            <label className="font-semibold mb-1">Gender *</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+              className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
+            >
+              <option value="">Select Gender</option>
+              {genderOptions.map((g, i) => (
+                <option key={i} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Contact Number */}
+          <div className="flex flex-col">
+            <label className="font-semibold mb-1">Contact Number *</label>
             <input
               type="tel"
               name="phone"
-              placeholder="Enter your phone number"
+              placeholder="Enter 10-digit phone number"
               value={formData.phone}
               onChange={handleChange}
               required
+              maxLength={10}
+              pattern="[0-9]{10}"
               className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
             />
           </div>
 
-          {/* College Name */}
+          {/* College */}
           <div className="flex flex-col">
-            <label className="font-semibold mb-1">College Name</label>
+            <label className="font-semibold mb-1">College Name *</label>
             <input
               type="text"
               name="college"
-              placeholder="Enter your college name"
+              placeholder="Enter your college/university"
               value={formData.college}
               onChange={handleChange}
               required
@@ -170,84 +247,198 @@ const EnrollForm = () => {
             />
           </div>
 
-          {/* Location */}
+          {/* Qualification */}
           <div className="flex flex-col">
-            <label className="font-semibold mb-1">Location</label>
-            <input
-              type="text"
-              name="location"
-              placeholder="Enter your city or location"
-              value={formData.location}
-              onChange={handleChange}
-              required
-              className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
-            />
-          </div>
-
-          {/* Course */}
-          <div className="flex flex-col md:col-span-2">
-            <label className="font-semibold mb-1">Select Course</label>
+            <label className="font-semibold mb-1">Highest Academic Qualification *</label>
             <select
-              name="course"
-              value={formData.course}
+              name="qualification"
+              value={formData.qualification}
               onChange={handleChange}
               required
               className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
             >
-              <option value="">Choose a course</option>
-              {courses.map((course, i) => (
-                <option key={i} value={course}>
-                  {course}
+              <option value="">Select Qualification</option>
+              {qualificationOptions.map((q, i) => (
+                <option key={i} value={q}>
+                  {q}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Duration */}
-          <div className="flex flex-col md:col-span-2">
-            <label className="font-semibold mb-1">Preferred Duration</label>
+          {/* Year */}
+          <div className="flex flex-col">
+            <label className="font-semibold mb-1">Current Year of Study *</label>
             <select
-              name="duration"
-              value={formData.duration}
+              name="year"
+              value={formData.year}
               onChange={handleChange}
               required
               className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
             >
-              <option value="">Choose duration</option>
-              {durations.map((dur, i) => (
-                <option key={i} value={dur}>
-                  {dur}
+              <option value="">Select Year</option>
+              {yearOptions.map((y, i) => (
+                <option key={i} value={y}>
+                  {y}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Mentor Guidance */}
-          <div className="flex flex-col md:col-span-2">
-            <label className="font-semibold mb-1">Mentor Guidance</label>
+          {/* Domain */}
+          <div className="flex flex-col">
+            <label className="font-semibold mb-1">Internship Domain *</label>
             <select
-              name="guidance"
-              value={formData.guidance}
+              name="domain"
+              value={formData.domain}
               onChange={handleChange}
               required
               className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
             >
-              <option value="">Choose an option</option>
-              {guidanceOptions.map((opt, i) => (
-                <option key={i} value={opt}>
-                  {opt}
+              <option value="">Select a Domain</option>
+              {internshipDomains.map((d, i) => (
+                <option key={i} value={d}>
+                  {d}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Terms & Conditions */}
-          <div className="md:col-span-2 flex items-start gap-3 mt-2">
+          {/* Source */}
+          <div className="flex flex-col">
+            <label className="font-semibold mb-1">
+              Where did you hear about Code Nexus? *
+            </label>
+            <select
+              name="source"
+              value={formData.source}
+              onChange={handleChange}
+              required
+              className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
+            >
+              <option value="">Select an Option</option>
+              {sourceOptions.map((s, i) => (
+                <option key={i} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Social Media Section */}
+          <div className="flex flex-col space-y-4">
+            <label className="font-semibold text-gray-700">Follow our Social Media Pages *</label>
+
+            {/* LinkedIn */}
+            <div>
+              <span>
+                LinkedIn –{" "}
+                <a
+                  href="https://www.linkedin.com/in/code-nexus-0a511b386/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-600 font-semibold underline"
+                >
+                  Click here
+                </a>
+              </span>
+              <select
+                name="linkedin"
+                value={formData.linkedin}
+                onChange={handleChange}
+                required
+                className="mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
+              >
+                <option value="">Followed LinkedIn Page?</option>
+                {yesNoOptions.map((o, i) => (
+                  <option key={i} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Telegram */}
+            <div>
+              <span>
+                Telegram –{" "}
+                <a
+                  href="https://t.me/CODENexus032"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-600 font-semibold underline"
+                >
+                  Click here
+                </a>
+              </span>
+              <select
+                name="telegram"
+                value={formData.telegram}
+                onChange={handleChange}
+                required
+                className="mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
+              >
+                <option value="">Joined Telegram Page?</option>
+                {yesNoOptions.map((o, i) => (
+                  <option key={i} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Instagram */}
+            <div>
+              <span>
+                Instagram –{" "}
+                <a
+                  href="https://www.instagram.com/codenexus032/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-600 font-semibold underline"
+                >
+                  Click here
+                </a>
+              </span>
+              <select
+                name="instagram"
+                value={formData.instagram}
+                onChange={handleChange}
+                required
+                className="mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none"
+              >
+                <option value="">Followed Instagram Page?</option>
+                {yesNoOptions.map((o, i) => (
+                  <option key={i} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Referrals */}
+          <div className="flex flex-col">
+            <label className="font-semibold mb-1">Refer Any 2 (Name, Phone No.) *</label>
+            <textarea
+              name="referrals"
+              placeholder="Example: John - 9876543210, Priya - 9123456789"
+              value={formData.referrals}
+              onChange={handleChange}
+              required
+              className="p-3 border rounded-lg focus:ring-2 focus:ring-pink-400 outline-none resize-none"
+              rows="2"
+            ></textarea>
+          </div>
+
+          {/* Terms */}
+          <div className="flex items-start gap-3 mt-2">
             <input
               type="checkbox"
               name="agree"
               checked={formData.agree}
               onChange={handleChange}
+              required
               className="mt-1 w-5 h-5 text-pink-500 focus:ring-pink-400 border-gray-300 rounded"
             />
             <label className="text-sm text-gray-700">
@@ -259,34 +450,89 @@ const EnrollForm = () => {
               >
                 Terms & Conditions
               </button>{" "}
-              and confirm that the details provided above are accurate.
+              and confirm all details are correct.
             </label>
           </div>
 
-          {/* Submit Button */}
-          <div className="md:col-span-2 mt-4">
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 rounded-lg font-semibold text-lg hover:scale-105 transition"
-            >
-              Submit Enrollment
-            </button>
-          </div>
+          {/* Submit */}
+          <button
+          onClick={handleSubmit}
+            type="submit"
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 rounded-lg font-semibold text-lg hover:scale-105 transition"
+          >
+            Submit Application
+          </button>
         </form>
 
-        {/* 📄 Terms & Conditions Modal */}
+        {/* Terms Modal */}
         {showTerms && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative">
-              <h3 className="text-2xl font-bold text-pink-600 mb-4">Terms & Conditions</h3>
+              <h3 className="text-2xl font-bold text-pink-600 mb-4">
+                Terms & Conditions
+              </h3>
               <div className="text-gray-700 text-sm space-y-3 max-h-80 overflow-y-auto">
-                <p>1. All information provided by the student must be accurate and truthful.</p>
-                <p>2. Enrollment does not guarantee placement, but dedicated mentorship and guidance will be provided.</p>
-                <p>3. Students are expected to maintain professional behavior during sessions.</p>
-                <p>4. Course materials provided are for personal educational use only and cannot be shared publicly.</p>
-                <p>5. The organization reserves the right to modify schedules, mentors, or course content if necessary.</p>
-                <p>6. Completion certificates will be issued based on performance and attendance.</p>
-                <p>7. By enrolling, you consent to receive communications via email or phone about your course updates.</p>
+                <p>1. Provide accurate and verifiable information.</p>
+                <p>2. Duration: 1 month with 3+ projects.</p>
+                <p>3. Offer letter within 24–48 hours post submission.</p>
+                <p>4. Certificates and LOR based on performance.</p>
+                <p>5. Following LinkedIn, Telegram, Instagram is mandatory.</p>
+                <p>6. Multiple applications for same domain = invalid.</p>
+                <p>7. Communication through registered email.</p>
+                <p>8. Professional conduct expected during internship.</p>
+                <p>9. Social Media Links:</p>
+                <ul className="list-disc list-inside text-blue-600">
+                  <li>
+                    <a
+                      href="https://www.linkedin.com/in/code-nexus-0a511b386/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      LinkedIn
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://t.me/CODENexus032"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Telegram
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.instagram.com/codenexus032/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Instagram
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://www.youtube.com/@CODENexus-032"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      YouTube
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://x.com/CODENexus032"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      X (Twitter)
+                    </a>
+                  </li>
+                </ul>
               </div>
               <button
                 onClick={() => setShowTerms(false)}

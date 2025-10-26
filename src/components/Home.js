@@ -17,7 +17,7 @@ const Home = ({ animateKey }) => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
-    arrows: false, // ✅ hide arrows
+    arrows: true, // ✅ hide arrows
   };
 
   return (
